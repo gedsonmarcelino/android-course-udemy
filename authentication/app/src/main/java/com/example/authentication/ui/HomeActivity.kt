@@ -29,7 +29,7 @@ class HomeActivity : AppCompatActivity() {
 
     private fun getActivityParams(){
         intent.extras?.let {
-            binding.txtMessage.text = it.getString(AppConstants.EMAIL)
+            binding.txtMessage.text = "Olá... ${it.getString(AppConstants.EMAIL)}"
         }
     }
 }
