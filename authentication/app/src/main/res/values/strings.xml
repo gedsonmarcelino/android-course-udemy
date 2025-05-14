@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">authentication</string>
+    <string name="hello">Olá…</string>
+    <string name="login">Login</string>
+    <string name="password">*****</string>
+    <string name="email">E-mail</string>
 </resources>

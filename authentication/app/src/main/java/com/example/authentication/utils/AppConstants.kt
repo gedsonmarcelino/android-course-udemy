@@ -1,4 +1,4 @@
-package com.example.authentication
+package com.example.authentication.utils
 
 class AppConstants private constructor(){
     companion object{
