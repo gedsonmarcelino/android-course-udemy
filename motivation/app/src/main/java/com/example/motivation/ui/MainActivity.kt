@@ -12,25 +12,28 @@ import com.example.motivation.helpers.LocalStorage
 import com.example.motivation.utils.Constants
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var binding: ActivityMainBinding
-    private lateinit var localStorage: LocalStorage
+    private val binding: ActivityMainBinding by lazy { ActivityMainBinding.inflate(layoutInflater) }
+    private val localStorage: LocalStorage by lazy { LocalStorage(this) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        localStorage = LocalStorage(this)
         ViewCompat.setOnApplyWindowInsetsListener(binding.main) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            v.setPadding(
+                systemBars.left + 20,
+                systemBars.top,
+                systemBars.right + 20,
+                systemBars.bottom
+            )
             insets
         }
 
         getUserName()
     }
 
-    fun getUserName(){
+    fun getUserName() {
         val name = localStorage.get(Constants.NAME_KEY)
         binding.txtName.text = name
     }
