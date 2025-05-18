@@ -2,44 +2,29 @@ package com.example.mybooks.repository
 
 import android.content.ContentValues
 import android.content.Context
-import android.database.sqlite.SQLiteDatabase
-import android.database.sqlite.SQLiteOpenHelper
 import com.example.mybooks.entity.BookEntity
+import com.example.mybooks.repository.database.BookDatabaseHelper
+import com.example.mybooks.repository.database.BookRoomDatabaseHelper
+import com.example.mybooks.repository.factory.DatabaseRepositoryInterface
 import com.example.mybooks.utils.AppConstants
 
-class BookDatabaseHelper(context: Context) :
-    SQLiteOpenHelper(context, AppConstants.DB.NAME, null, AppConstants.DB.VERSION) {
-    override fun onCreate(db: SQLiteDatabase) {
-        db.execSQL(CREATE_TABLE_BOOKS)
-        insertBooks(db)
-    }
+class BookRoomRepository private constructor(context: Context) : DatabaseRepositoryInterface {
 
-    override fun onUpgrade(db: SQLiteDatabase, p1: Int, p2: Int) {
-        insertBooks(db)
-    }
+    private val database = BookRoomDatabaseHelper.getDatabase(context).bookDAO()
 
     companion object {
-        var CREATE_TABLE_BOOKS = """ 
-            CREATE TABLE ${AppConstants.DB_BOOK.TABLE_NAME} (
-                ${AppConstants.DB_BOOK.ID} INTEGER PRIMARY KEY AUTOINCREMENT,
-                ${AppConstants.DB_BOOK.TITLE} TEXT NOT NULL,
-                ${AppConstants.DB_BOOK.AUTHOR} TEXT NOT NULL,
-                ${AppConstants.DB_BOOK.GENRE} TEXT NOT NULL,
-                ${AppConstants.DB_BOOK.FAVORITE} BOOLEAN DEFAULT 0
-            );
-        """.trimIndent()
-    }
+        private lateinit var instance: BookRoomRepository
 
-    private fun insertBooks(db:SQLiteDatabase){
-        val books = getInitialBooks()
-        for (book in books){
-            val values = ContentValues().apply {
-                put(AppConstants.DB_BOOK.TITLE, book.title)
-                put(AppConstants.DB_BOOK.AUTHOR, book.author)
-                put(AppConstants.DB_BOOK.GENRE, book.genre)
-                put(AppConstants.DB_BOOK.FAVORITE, if (book.favorite) 1 else 0 )
+        fun getInstance(context: Context): BookRoomRepository {
+            synchronized(this) {
+                if (!::instance.isInitialized) {
+                    instance = BookRoomRepository(context)
+                    if ( instance.getAllBooks().isEmpty() ){
+                        instance.loadIntialBooks()
+                    }
+                }
             }
-            db.insert(AppConstants.DB_BOOK.TABLE_NAME, null, values)
+            return instance
         }
     }
 
@@ -66,5 +51,36 @@ class BookDatabaseHelper(context: Context) :
             BookEntity(19, "O Conde de Monte Cristo", "Alexandre Dumas", true, "Aventura"),
             BookEntity(20, "Os Miseráveis", "Victor Hugo", false, "Romance")
         )
+    }
+
+    private fun loadIntialBooks(){
+        val books = getInitialBooks()
+        database.insert(books)
+    }
+
+    override fun getAllBooks(): List<BookEntity> {
+        return database.getAllBooks()
+    }
+
+    override fun getFavoriteBooks(): List<BookEntity> {
+        return database.getFavoriteBooks()
+    }
+
+    override fun getBookById(id: Int): BookEntity? {
+        return database.getBookById(id)
+    }
+
+    override fun delete(id: Int): Boolean {
+        val book = getBookById(id)
+        val result = book?.let { database.delete(it) } ?: 0
+        return result > 0
+    }
+
+    override fun toggleFavoriteStatus(id: Int) {
+        val book = getBookById(id)
+        book?.let {
+            book.favorite = !book.favorite
+            database.update(book)
+        }
     }
 }

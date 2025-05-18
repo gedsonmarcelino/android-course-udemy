@@ -12,7 +12,7 @@ class AppConstants private constructor(){
     }
 
     object DB {
-        var FACTORY = "sql" // memory | sql | room
+        var FACTORY = "room" // memory | sql | room
         var NAME = "my_books_database"
         var VERSION = 2
     }
