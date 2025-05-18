@@ -1,13 +1,15 @@
 package com.example.mybooks.viewmodel
 
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import com.example.mybooks.entity.BookEntity
-import com.example.mybooks.repository.BookRepository
+import com.example.mybooks.repository.BookSqlRepository
+import com.example.mybooks.repository.factory.DatabaseRepositoryFactory
 
-class DetailViewModel : ViewModel() {
-    private val repository = BookRepository.getInstance()
+class DetailViewModel(application: Application) : AndroidViewModel(application) {
+    private val repository = DatabaseRepositoryFactory.getInstance(application.applicationContext)
 
     private var _book = MutableLiveData<BookEntity>()
     val book: LiveData<BookEntity> = _book

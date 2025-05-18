@@ -1,25 +1,45 @@
 package com.example.mybooks.repository
 
+import android.content.ContentValues
+import android.content.Context
+import android.database.sqlite.SQLiteDatabase
+import android.database.sqlite.SQLiteOpenHelper
 import com.example.mybooks.entity.BookEntity
+import com.example.mybooks.utils.AppConstants
 
-class BookRepository private constructor() {
+class BookDatabaseHelper(context: Context) :
+    SQLiteOpenHelper(context, AppConstants.DB.NAME, null, AppConstants.DB.VERSION) {
+    override fun onCreate(db: SQLiteDatabase) {
+        db.execSQL(CREATE_TABLE_BOOKS)
+        insertBooks(db)
+    }
 
-    private val books = mutableListOf<BookEntity>()
-
-    init {
-        books.addAll(getInitialBooks())
+    override fun onUpgrade(db: SQLiteDatabase, p1: Int, p2: Int) {
+        insertBooks(db)
     }
 
     companion object {
-        private lateinit var instance : BookRepository
+        var CREATE_TABLE_BOOKS = """ 
+            CREATE TABLE ${AppConstants.DB_BOOK.TABLE_NAME} (
+                ${AppConstants.DB_BOOK.ID} INTEGER PRIMARY KEY AUTOINCREMENT,
+                ${AppConstants.DB_BOOK.TITLE} TEXT NOT NULL,
+                ${AppConstants.DB_BOOK.AUTHOR} TEXT NOT NULL,
+                ${AppConstants.DB_BOOK.GENRE} TEXT NOT NULL,
+                ${AppConstants.DB_BOOK.FAVORITE} BOOLEAN DEFAULT 0
+            );
+        """.trimIndent()
+    }
 
-        fun getInstance(): BookRepository {
-            synchronized(this) {
-                if (!::instance.isInitialized){
-                    instance = BookRepository()
-                }
+    private fun insertBooks(db:SQLiteDatabase){
+        val books = getInitialBooks()
+        for (book in books){
+            val values = ContentValues().apply {
+                put(AppConstants.DB_BOOK.TITLE, book.title)
+                put(AppConstants.DB_BOOK.AUTHOR, book.author)
+                put(AppConstants.DB_BOOK.GENRE, book.genre)
+                put(AppConstants.DB_BOOK.FAVORITE, if (book.favorite) 1 else 0 )
             }
-            return instance
+            db.insert(AppConstants.DB_BOOK.TABLE_NAME, null, values)
         }
     }
 
@@ -46,28 +66,5 @@ class BookRepository private constructor() {
             BookEntity(19, "O Conde de Monte Cristo", "Alexandre Dumas", true, "Aventura"),
             BookEntity(20, "Os Miseráveis", "Victor Hugo", false, "Romance")
         )
-    }
-
-    fun getAllBooks(): List<BookEntity> {
-        return books
-    }
-
-    fun getFavoriteBooks(): List<BookEntity> {
-        return books.filter { it.favorite }
-    }
-
-    fun getBookById(id: Int): BookEntity? {
-        return books.find { it.id == id }
-    }
-
-    fun delete(id: Int): Boolean {
-        return books.removeIf { it.id == id }
-    }
-
-    fun toggleFavoriteStatus(id: Int) {
-        val book = books.find { it.id == id }
-        if (book != null) {
-            book.favorite = !book.favorite
-        }
     }
 }
