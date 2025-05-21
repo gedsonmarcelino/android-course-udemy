@@ -7,9 +7,9 @@ class TaskConstants private constructor() {
 
     // SharedPreferences
     object SHARED {
-        const val TOKEN_KEY = "tokenkey"
+        const val TOKEN = "tokenkey"
         const val PERSON_KEY = "personkey"
-        const val PERSON_NAME = "personname"
+        const val NAME = "personname"
     }
 
     // Requisições API
