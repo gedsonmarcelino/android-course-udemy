@@ -8,13 +8,15 @@ import androidx.lifecycle.viewModelScope
 import com.devmasterteam.tasks.viewmodel.helpers.ResponseHelper
 import com.devmasterteam.tasks.service.model.ValidationModel
 import com.devmasterteam.tasks.service.repository.PersonRepository
+import com.devmasterteam.tasks.service.repository.PriorityRepository
 import com.devmasterteam.tasks.viewmodel.helpers.AuthenticationHelper
 import kotlinx.coroutines.launch
 
-class LoginViewModel(private var application: Application) : AndroidViewModel(application) {
+class LoginViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val authenticationHelper = AuthenticationHelper(application)
+    private val authenticationHelper = AuthenticationHelper(application.applicationContext)
     private val personRepository = PersonRepository()
+    private val priorityRepository = PriorityRepository(application.applicationContext)
 
     private val _loginResult = MutableLiveData<ValidationModel>()
     val loginResult: LiveData<ValidationModel> = _loginResult
@@ -37,7 +39,16 @@ class LoginViewModel(private var application: Application) : AndroidViewModel(ap
 
     fun isUserLogged() {
         viewModelScope.launch {
-            _userLogged.value = authenticationHelper.isUserLogged()
+            val isUserLogged = authenticationHelper.isUserLogged()
+            _userLogged.value = isUserLogged
+
+            if (isUserLogged) {
+                val response = priorityRepository.getAll()
+                if (response.isSuccessful){
+                    val priorities = response.body()!!
+                    priorityRepository.save(priorities)
+                }
+            }
         }
     }
 }

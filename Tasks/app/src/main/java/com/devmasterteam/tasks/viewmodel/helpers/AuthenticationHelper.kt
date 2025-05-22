@@ -1,13 +1,13 @@
 package com.devmasterteam.tasks.viewmodel.helpers
 
-import android.app.Application
+import android.content.Context
 import com.devmasterteam.tasks.service.constants.TaskConstants
 import com.devmasterteam.tasks.service.model.PersonModel
 import com.devmasterteam.tasks.service.repository.local.PreferencesManager
 
-class AuthenticationHelper(application: Application) {
+class AuthenticationHelper(context: Context) {
 
-    private val preferencesManager = PreferencesManager(application.applicationContext)
+    private val preferencesManager = PreferencesManager(context)
 
     suspend fun saveUserData(person: PersonModel) {
         preferencesManager.store(
