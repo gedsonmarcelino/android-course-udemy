@@ -1,7 +1,6 @@
 package com.devmasterteam.tasks.viewmodel
 
 import android.app.Application
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
@@ -13,10 +12,10 @@ import com.devmasterteam.tasks.service.repository.remote.RetrofitClient
 import com.devmasterteam.tasks.viewmodel.helpers.AuthenticationHelper
 import kotlinx.coroutines.launch
 
-class LoginViewModel(application: Application) : AndroidViewModel(application) {
+class LoginViewModel(application: Application) : BaseViewModel(application) {
 
     private val authenticationHelper = AuthenticationHelper(application.applicationContext)
-    private val personRepository = PersonRepository()
+    private val personRepository = PersonRepository(application.applicationContext)
     private val priorityRepository = PriorityRepository(application.applicationContext)
 
     private val _loginResult = MutableLiveData<ValidationModel>()
@@ -27,36 +26,44 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
 
     fun login(email: String, password: String) {
         viewModelScope.launch {
-            val response = personRepository.login(email, password)
+            try {
+                val response = personRepository.login(email, password)
 
-            if (ResponseHelper.isSuccessfull(response)) {
-                val personModel = response.body()!!
+                if (ResponseHelper.isSuccessfull(response)) {
+                    val personModel = response.body()!!
 
-                RetrofitClient.addHeaders(personModel.token, personModel.personToken)
+                    RetrofitClient.addHeaders(personModel.token, personModel.personToken)
 
-                authenticationHelper.saveUserData(personModel)
+                    authenticationHelper.saveUserData(personModel)
+                }
+
+                _loginResult.value = ResponseHelper.getResult(response)
+            } catch (error: Exception) {
+                _loginResult.value = handleException(error)
             }
-
-            _loginResult.value = ResponseHelper.getResult(response)
         }
     }
 
     fun isUserLogged() {
         viewModelScope.launch {
-            val isUserLogged = authenticationHelper.isUserLogged()
+            try {
+                val isUserLogged = authenticationHelper.isUserLogged()
 
-            if (isUserLogged) {
-                val personModel = authenticationHelper.getUserData()
-                RetrofitClient.addHeaders(personModel.token, personModel.personToken)
+                if (isUserLogged) {
+                    val personModel = authenticationHelper.getUserData()
+                    RetrofitClient.addHeaders(personModel.token, personModel.personToken)
 
-                val response = priorityRepository.getAll()
-                if (response.isSuccessful){
-                    val priorities = response.body()!!
-                    priorityRepository.save(priorities)
+                    val response = priorityRepository.getAll()
+                    if (response.isSuccessful) {
+                        val priorities = response.body()!!
+                        priorityRepository.save(priorities)
+                    }
+
+                    _userLogged.value = true
+                } else {
+                    _userLogged.value = false
                 }
-
-                _userLogged.value = true
-            } else {
+            } catch (_: Exception) {
                 _userLogged.value = false
             }
         }

@@ -11,17 +11,21 @@ import com.devmasterteam.tasks.service.repository.PersonRepository
 import com.devmasterteam.tasks.service.repository.local.PreferencesManager
 import kotlinx.coroutines.launch
 
-class RegisterViewModel(application: Application) : AndroidViewModel(application) {
+class RegisterViewModel(application: Application) : BaseViewModel(application) {
     private val preferencesManager = PreferencesManager(application.applicationContext)
-    private val personRepository = PersonRepository()
+    private val personRepository = PersonRepository(application.applicationContext)
 
     private val _createResult = MutableLiveData<ValidationModel>()
     val createResult:LiveData<ValidationModel> = _createResult
 
     fun create(name:String, email:String, password: String){
         viewModelScope.launch {
-            val response = personRepository.create(name, email, password)
-            _createResult.value = ResponseHelper.getResult(response)
+            try {
+                val response = personRepository.create(name, email, password)
+                _createResult.value = ResponseHelper.getResult(response)
+            } catch (error: Exception){
+                _createResult.value = handleException(error)
+            }
         }
     }
 }

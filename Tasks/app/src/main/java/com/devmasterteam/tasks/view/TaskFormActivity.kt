@@ -6,7 +6,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import android.app.DatePickerDialog
-import android.content.Intent
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.DatePicker
@@ -14,6 +13,7 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import com.devmasterteam.tasks.R
 import com.devmasterteam.tasks.databinding.ActivityTaskFormBinding
+import com.devmasterteam.tasks.service.constants.TaskConstants
 import com.devmasterteam.tasks.service.model.PriorityModel
 import com.devmasterteam.tasks.service.model.TaskModel
 import com.devmasterteam.tasks.viewmodel.TaskFormViewModel
@@ -53,6 +53,7 @@ class TaskFormActivity : AppCompatActivity(), View.OnClickListener,
         binding.buttonSave.setOnClickListener(this)
         binding.buttonDate.setOnClickListener(this)
 
+        getArguments()
         observe()
     }
 
@@ -72,6 +73,14 @@ class TaskFormActivity : AppCompatActivity(), View.OnClickListener,
         binding.buttonDate.text = dueDate
     }
 
+    private fun getArguments(){
+        val bundle = intent.extras
+        if ( bundle != null ){
+            taskId = bundle.getInt(TaskConstants.BUNDLE.TASKID)
+            loadTask(taskId)
+        }
+    }
+
     private fun observe() {
         viewModel.priorites.observe(this) {
             if (it.isNotEmpty()) {
@@ -87,9 +96,26 @@ class TaskFormActivity : AppCompatActivity(), View.OnClickListener,
         }
 
         viewModel.saveResult.observe(this) {
-            val intent = Intent(applicationContext, MainActivity::class.java)
-            startActivity(intent)
-            finish()
+            if ( it.success ){
+                toast(getString(R.string.msg_task_created))
+                finish()
+            } else {
+                toast(it.message!!)
+            }
+        }
+
+        viewModel.task.observe(this) { task ->
+            binding.editDescription.setText(task.description)
+
+            val index = listPriority.indexOfFirst { it.id == task.priorityId }
+            binding.spinnerPriority.setSelection(index)
+
+            binding.checkComplete.isChecked = task.complete
+
+            val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(task.dueDate)
+            binding.buttonDate.text = dateFormat.format(date!!)
+
+            binding.buttonSave.text = getString(R.string.button_update_task)
         }
     }
 
@@ -97,14 +123,17 @@ class TaskFormActivity : AppCompatActivity(), View.OnClickListener,
         Toast.makeText(applicationContext, str, Toast.LENGTH_SHORT).show()
     }
 
-    private fun handleSave() {
+    private fun loadTask(id:Int){
+        viewModel.load(id)
+    }
 
+    private fun handleSave() {
         val priorityId = listPriority[binding.spinnerPriority.selectedItemPosition].id
         val description = binding.editDescription.text.toString()
         val complete = binding.checkComplete.isChecked
         val dueDate = binding.buttonDate.text.toString()
 
-        val task = TaskModel(0, priorityId, description,  dueDate, complete)
+        val task = TaskModel(taskId, priorityId, description,  dueDate, complete)
         viewModel.save(task)
     }
 

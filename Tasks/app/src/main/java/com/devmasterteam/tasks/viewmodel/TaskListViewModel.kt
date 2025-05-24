@@ -8,10 +8,11 @@ import com.devmasterteam.tasks.service.constants.TaskConstants
 import com.devmasterteam.tasks.service.model.TaskModel
 import com.devmasterteam.tasks.service.repository.PriorityRepository
 import com.devmasterteam.tasks.service.repository.TaskRepository
+import com.devmasterteam.tasks.viewmodel.helpers.ResponseHelper
 import kotlinx.coroutines.launch
 
 class TaskListViewModel(application: Application) : AndroidViewModel(application) {
-    private val taskRepository = TaskRepository()
+    private val taskRepository = TaskRepository(application.applicationContext)
     private val priorityRepository = PriorityRepository(application.applicationContext)
 
     private val _tasksResult = MutableLiveData<List<TaskModel>>()
@@ -43,8 +44,16 @@ class TaskListViewModel(application: Application) : AndroidViewModel(application
     fun setStatus(id: Int, value: Boolean) {
         viewModelScope.launch {
             val response = taskRepository.status(id, value)
+            if (ResponseHelper.isSuccessfull(response)) {
+                getAll(taskFilter)
+            }
+        }
+    }
 
-            if ( response.isSuccessful && response.body() != null ){
+    fun delete(id: Int) {
+        viewModelScope.launch {
+            val response = taskRepository.delete(id)
+            if (ResponseHelper.isSuccessfull(response)){
                 getAll(taskFilter)
             }
         }
