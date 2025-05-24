@@ -1,5 +1,6 @@
 package com.devmasterteam.tasks.service.repository.remote
 
+import androidx.datastore.preferences.core.Preferences
 import com.devmasterteam.tasks.service.constants.TaskConstants
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -9,9 +10,21 @@ class RetrofitClient private constructor() {
 
     companion object {
         private lateinit var INSTANCE: Retrofit
+        private var personKey = ""
+        private var token = ""
 
         private fun getRetrofitInstance(): Retrofit {
             val httpClient = OkHttpClient.Builder()
+
+            httpClient.addInterceptor { http ->
+                val request = http.request()
+                    .newBuilder()
+                    .addHeader(TaskConstants.HEADER.TOKEN_KEY, token)
+                    .addHeader(TaskConstants.HEADER.PERSON_KEY, personKey)
+                    .build()
+
+                http.proceed(request)
+            }
 
             if (!::INSTANCE.isInitialized) {
                 synchronized(RetrofitClient::class) {
@@ -25,6 +38,11 @@ class RetrofitClient private constructor() {
 
         fun <T> getService(serviceClass: Class<T>): T {
             return getRetrofitInstance().create(serviceClass)
+        }
+
+        fun addHeaders(tokenValue: String, personKeyValue: String) {
+            token = tokenValue
+            personKey = personKeyValue
         }
     }
 }

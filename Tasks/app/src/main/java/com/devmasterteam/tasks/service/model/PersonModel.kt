@@ -6,7 +6,7 @@ data class PersonModel (
     @SerializedName("token")
     val token: String,
 
-    @SerializedName("personToken")
+    @SerializedName("personKey")
     val personToken: String,
 
     @SerializedName("name")

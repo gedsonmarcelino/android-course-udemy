@@ -9,6 +9,7 @@ import com.devmasterteam.tasks.viewmodel.helpers.ResponseHelper
 import com.devmasterteam.tasks.service.model.ValidationModel
 import com.devmasterteam.tasks.service.repository.PersonRepository
 import com.devmasterteam.tasks.service.repository.PriorityRepository
+import com.devmasterteam.tasks.service.repository.remote.RetrofitClient
 import com.devmasterteam.tasks.viewmodel.helpers.AuthenticationHelper
 import kotlinx.coroutines.launch
 
@@ -29,8 +30,11 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
             val response = personRepository.login(email, password)
 
             if (ResponseHelper.isSuccessfull(response)) {
-                val body = response.body()!!
-                authenticationHelper.saveUserData(body)
+                val personModel = response.body()!!
+
+                RetrofitClient.addHeaders(personModel.token, personModel.personToken)
+
+                authenticationHelper.saveUserData(personModel)
             }
 
             _loginResult.value = ResponseHelper.getResult(response)
@@ -40,14 +44,20 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
     fun isUserLogged() {
         viewModelScope.launch {
             val isUserLogged = authenticationHelper.isUserLogged()
-            _userLogged.value = isUserLogged
 
             if (isUserLogged) {
+                val personModel = authenticationHelper.getUserData()
+                RetrofitClient.addHeaders(personModel.token, personModel.personToken)
+
                 val response = priorityRepository.getAll()
                 if (response.isSuccessful){
                     val priorities = response.body()!!
                     priorityRepository.save(priorities)
                 }
+
+                _userLogged.value = true
+            } else {
+                _userLogged.value = false
             }
         }
     }
