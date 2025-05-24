@@ -11,7 +11,23 @@ class TaskRepository {
 
     private val remote = RetrofitClient.getService(TaskService::class.java)
 
-//    suspend fun tasks(): Response<List<TaskModel>> {
-//        return remote.tasks()
-//    }
+    suspend fun getAll(): Response<List<TaskModel>> {
+        return remote.getAll()
+    }
+
+    suspend fun getOnNextDays(): Response<List<TaskModel>> {
+        return remote.getOnNextDays()
+    }
+
+    suspend fun getOverdue(): Response<List<TaskModel>> {
+        return remote.getOverdue()
+    }
+
+    suspend fun save(task: TaskModel): Response<Boolean> {
+        if (task.id > 0) {
+            return remote.update(task.id, task.priorityId, task.description, task.dueDate, task.complete)
+        } else {
+            return remote.create(task.priorityId,task.description, task.dueDate, task.complete)
+        }
+    }
 }
