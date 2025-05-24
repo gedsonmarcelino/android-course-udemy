@@ -40,7 +40,7 @@ class AllTasksFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        viewModel.getAll()
+        viewModel.getAll(taskFilter)
     }
 
     override fun onDestroyView() {
@@ -65,11 +65,11 @@ class AllTasksFragment : Fragment() {
             }
 
             override fun onCompleteClick(id: Int) {
-                TODO("Not yet implemented")
+                viewModel.setStatus(id, true)
             }
 
             override fun onUndoClick(id: Int) {
-                TODO("Not yet implemented")
+                viewModel.setStatus(id, false)
             }
 
         }

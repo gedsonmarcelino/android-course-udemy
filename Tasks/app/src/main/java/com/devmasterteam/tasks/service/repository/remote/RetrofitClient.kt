@@ -1,6 +1,5 @@
 package com.devmasterteam.tasks.service.repository.remote
 
-import androidx.datastore.preferences.core.Preferences
 import com.devmasterteam.tasks.service.constants.TaskConstants
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit

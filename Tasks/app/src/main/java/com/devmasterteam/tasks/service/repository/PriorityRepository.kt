@@ -26,4 +26,7 @@ class PriorityRepository(context: Context) {
         return database.list()
     }
 
+    suspend fun getDescription(id: Int): String {
+        return database.getDescription(id)
+    }
 }
