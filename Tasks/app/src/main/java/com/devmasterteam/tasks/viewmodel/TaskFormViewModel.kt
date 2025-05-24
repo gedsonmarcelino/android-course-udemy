@@ -6,12 +6,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
-import com.devmasterteam.tasks.service.model.PriorityModel
 import com.devmasterteam.tasks.service.model.TaskModel
 import com.devmasterteam.tasks.service.repository.PriorityRepository
 import com.devmasterteam.tasks.service.repository.TaskRepository
-import com.devmasterteam.tasks.service.repository.local.TaskDatabase
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 
 class TaskFormViewModel(application: Application) : AndroidViewModel(application) {

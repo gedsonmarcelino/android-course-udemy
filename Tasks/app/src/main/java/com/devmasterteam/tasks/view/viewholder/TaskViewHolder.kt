@@ -1,7 +1,6 @@
 package com.devmasterteam.tasks.view.viewholder
 
 import android.app.AlertDialog
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.devmasterteam.tasks.R
 import com.devmasterteam.tasks.databinding.ItemTaskListBinding
