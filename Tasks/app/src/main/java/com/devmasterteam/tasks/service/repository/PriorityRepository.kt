@@ -13,6 +13,16 @@ class PriorityRepository(context: Context) {
     private val remote = RetrofitClient.getService(PriorityService::class.java)
     private val database = TaskDatabase.getDatabase(context).priorityDAO()
 
+    companion object {
+        private var cache = mutableMapOf<Int, String>()
+
+        fun setCache(id: Int, value: String) {
+            cache[id] = value
+        }
+
+        fun getCache(id: Int) =  cache[id] ?: ""
+    }
+
     suspend fun getAll(): Response<List<PriorityModel>> {
         return remote.getAll()
     }
@@ -27,6 +37,11 @@ class PriorityRepository(context: Context) {
     }
 
     suspend fun getDescription(id: Int): String {
-        return database.getDescription(id)
+        var valueFromCache = getCache(id)
+        if ( valueFromCache == "" ){
+            valueFromCache = database.getDescription(id)
+            setCache(id, valueFromCache)
+        }
+        return valueFromCache
     }
 }
